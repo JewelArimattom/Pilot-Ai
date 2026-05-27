@@ -1,0 +1,41 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run ui:dev",
+    "beforeBuildCommand": "npm run ui:build",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist",
+    "withGlobalTauri": true
+  },
+  "package": {
+    "productName": "Pilot AI",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "bundle": {
+      "identifier": "com.pilot.ai"
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "Pilot AI",
+        "width": 1024,
+        "height": 720,
+        "resizable": true
+      },
+      {
+        "label": "overlay",
+        "title": "Pilot AI Overlay",
+        "url": "?overlay=1",
+        "fullscreen": true,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false
+      }
+    ],
+    "allowlist": {
+      "all": true
+    }
+  }
+}

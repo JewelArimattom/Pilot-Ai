@@ -1,0 +1,18 @@
+{
+  "name": "pilot-ai",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "ui:dev": "vite",
+    "ui:build": "vite build",
+    "ui:preview": "vite preview",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.9",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.1"
+  }
+}
