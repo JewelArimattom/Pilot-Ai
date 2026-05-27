@@ -358,7 +358,7 @@ fn build_prompt(request: &str, teach_mode: bool) -> String {
   let skill_list: Vec<String> = skills.iter().map(|s| format!("{}: {}", s.id, s.description)).collect();
 
   let mode_rules = if teach_mode {
-    "**TEACHING MODE ACTIVE:** You MUST perform tasks interactively using physical mouse moves and clicks so the user can see what is happening. Describe what you're doing. Use desktop.move_mouse to hover and desktop.click to click."
+    "**TEACHING MODE ACTIVE (CRITICAL):** You MUST perform tasks interactively using physical mouse moves and clicks so the user can see what is happening. Describe what you're doing. Use `desktop.move_mouse` to hover and `desktop.click` to click. Do NOT use `desktop.ui_click`, `desktop.ui_type`, `desktop.ui_read`, or `desktop.hotkey` because the user cannot see those happen!"
   } else {
     "**EXECUTION MODE ACTIVE:** You may use programmatic methods like ui_click, ui_read, or hotkey actions for faster completion."
   };
@@ -391,7 +391,7 @@ fn build_prompt(request: &str, teach_mode: bool) -> String {
      If a screenshot is provided, use it to read what is on screen and ground your UI actions.\n\
      Actions: {}\n\
      Params: check_app{{appName}} open_app{{path,args?}} click{{x,y,button?,clickCount?}} move_mouse{{x,y}} type_text{{text}} hotkey{{keys[]}} scroll{{amount}} wait{{ms}} ui_click{{name,controlType?,windowName?}} ui_type{{name,text,controlType?,windowName?}} ui_read{{name,controlType?,windowName?}}\n\
-     ControlTypes: Button,Edit,Text,ComboBox,ListItem,MenuItem,CheckBox\n\
+     ControlTypes: Button,Edit,Text,ComboBox,ListItem,MenuItem,CheckBox. Omit controlType unless needed to disambiguate.\n\
      Request: {}",
     skill_list.join("; "),
     request

@@ -133,7 +133,21 @@ fn execute_action(app: &tauri::AppHandle, enigo: &mut Enigo, action: &SkillActio
       control_type,
       window_name
     } => {
-      run_ui_action("click", name, control_type.as_deref(), window_name.as_deref(), None)?;
+      let res = run_ui_action("click", name, control_type.as_deref(), window_name.as_deref(), None)?;
+      if res.starts_with("POINT:") {
+        let parts: Vec<&str> = res["POINT:".len()..].split(',').collect();
+        if parts.len() == 2 {
+          if let (Ok(x), Ok(y)) = (parts[0].trim().parse::<i32>(), parts[1].trim().parse::<i32>()) {
+            let _ = app.emit_all("overlay-move", serde_json::json!({ "x": x, "y": y }));
+            thread::sleep(Duration::from_millis(300));
+            enigo.mouse_move_to(x, y);
+            thread::sleep(Duration::from_millis(150));
+            let _ = app.emit_all("overlay-click", ());
+            enigo.mouse_click(MouseButton::Left);
+            return Ok(Some("Physically clicked UI element".to_string()));
+          }
+        }
+      }
       Ok(Some("Clicked UI element".to_string()))
     }
     SkillAction::DesktopUiType {
@@ -142,13 +156,26 @@ fn execute_action(app: &tauri::AppHandle, enigo: &mut Enigo, action: &SkillActio
       control_type,
       window_name
     } => {
-      run_ui_action(
+      let res = run_ui_action(
         "type",
         name,
         control_type.as_deref(),
         window_name.as_deref(),
         Some(text)
       )?;
+      if res.starts_with("POINT:") {
+        let lines: Vec<&str> = res.split('\n').collect();
+        let point_line = lines[0];
+        let parts: Vec<&str> = point_line["POINT:".len()..].split(',').collect();
+        if parts.len() == 2 {
+          if let (Ok(x), Ok(y)) = (parts[0].trim().parse::<i32>(), parts[1].trim().parse::<i32>()) {
+            let _ = app.emit_all("overlay-move", serde_json::json!({ "x": x, "y": y }));
+            thread::sleep(Duration::from_millis(300));
+            enigo.mouse_move_to(x, y);
+            thread::sleep(Duration::from_millis(150));
+          }
+        }
+      }
       Ok(Some("Typed into UI element".to_string()))
     }
     SkillAction::DesktopUiRead {
@@ -335,6 +362,11 @@ function TryGetPattern($el, $pat) {
 
 switch ($action) {
   "click" {
+    $pt = New-Object System.Windows.Point
+    if ($element.TryGetClickablePoint([ref]$pt)) {
+      "POINT:$([int]$pt.X),$([int]$pt.Y)"
+      exit 0
+    }
     $invoke = TryGetPattern $element ([System.Windows.Automation.InvokePattern]::Pattern)
     if ($invoke) { $invoke.Invoke(); "clicked"; exit 0 }
     $element.SetFocus()
@@ -343,6 +375,10 @@ switch ($action) {
   }
   "type" {
     if (-not $text) { Write-Error "Missing text"; exit 2 }
+    $pt = New-Object System.Windows.Point
+    if ($element.TryGetClickablePoint([ref]$pt)) {
+      Write-Output "POINT:$([int]$pt.X),$([int]$pt.Y)"
+    }
     $value = TryGetPattern $element ([System.Windows.Automation.ValuePattern]::Pattern)
     if ($value) { $value.SetValue($text); "typed"; exit 0 }
     $element.SetFocus()
